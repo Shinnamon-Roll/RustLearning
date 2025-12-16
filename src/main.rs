@@ -41,18 +41,30 @@ impl Book {
        match self.status {
             BookStatus::Available => {
                 self.status = BookStatus::Borrowed(user_id);
-                print!("User ID {} ", user_id);
                 true
             },
             BookStatus::Borrowed(_) => false,
        }
        
     }
+
+    fn return_book(&mut self, user_id: u64) -> bool {
+        match self.status {
+            BookStatus::Borrowed(borrower) if borrower == user_id => {
+                self.status = BookStatus::Available;
+                true
+            },
+            BookStatus::Borrowed(_) => false,  // ผิดคน ยืมไป
+            BookStatus::Available => false,  // หนังสือว่างอยู่แล้ว
+        }
+    }
 }
 
 fn main() {
     let mut books: Vec<Book> = Vec::new();
     let mut users: Vec<User> = Vec::new();
+
+    println!("========== เริ่มต้นระบบห้องสมุด ==========\n");
 
     books.push(Book {
         title: String::from("The Rust Programming Language"),
@@ -69,29 +81,57 @@ fn main() {
         department: String::from("Engineering"),
     });
 
-    let is_successfull = books[0].borrow(users[0].id);
-    if is_successfull {
-        println!("ยืมหนังสือสำเร็จ {}", books[0].title);
-    } else {
-        println!("หนังสือถูกยืมไปแล้ว {}", books[0].title);
-    }
+    users.push(User {
+        id: 2,
+        name: String::from("Bob"),
+        age: 25,
+        status: UserStatus::Active,
+        department: String::from("Marketing"),
+    });
 
-    let is_successfull = books[0].borrow(users[0].id);
-    if is_successfull {
-        println!("ยืมหนังสือสำเร็จ {} ", books[0].title);
-    } else {
-        println!("หนังสือถูกยืมไปแล้ว {}", books[0].title);
 
+    println!("📚 หนังสือ: {}", books[0].title);
+    println!("👤 ผู้ใช้: {} (ID: {})", users[0].name, users[0].id);
+    println!("📖 สถานะเริ่มต้น: Available\n");
+
+    println!("---------- ขั้นตอน 1: ยืมหนังสือ ----------");
+
+    // ยืมหนังสือ
+    let borrowBook: bool = books[0].borrow(users[0].id);
+
+    if borrowBook {
+        println!("✅ ยืมหนังสือสำเร็จ!");
+        println!("📖 สถานะหลังยืม: Borrowed by User ID {}", users[0].id);
+    } else {
         match &books[0].status {
             BookStatus::Borrowed(user_id) => {
-                println!("หนังสือถูกยืมโดย User ID: {}", user_id);
+                println!("❌ หนังสือถูกยืมไปแล้วโดย User ID: {}", user_id);
+            },
+            _ => {
             }
-            _ => println!("สถานะหนังสือไม่ทราบ"),
+        }
+        println!("❌ ยืมหนังสือไม่สำเร็จ");
+    };
+    println!();
+
+    println!("---------- ขั้นตอน 2: คืนหนังสือ ----------");
+
+    // คืนหนังสือ
+    let returnBook: bool = books[0].return_book(users[1].id);
+
+    if returnBook {
+        println!("✅ คืนหนังสือสำเร็จ!");
+        println!("📖 สถานะหลังคืน: Available");
+    } else {
+        println!("❌ คืนหนังสือไม่สำเร็จ");
+        match &books[0].status {
+            BookStatus::Borrowed(user_id) => {
+                println!("   หนังสือถูกยืมโดย User ID {} ไม่ใช่ {}", user_id, users[0].id);
+            },
+            BookStatus::Available => {
+                println!("   หนังสือว่างแล้ว");
+            }
         }
     }
-
-    
-
-
-
+    println!("\n========== สิ้นสุดการทำงาน ==========");
 }
