@@ -1,4 +1,4 @@
-# RustLerning
+# RustLearning
 
 A learning project for exploring Rust fundamentals, including structs, enums, methods, and mutable state management.
 
